@@ -35,23 +35,27 @@
   <body>
     <h2>Satori - Slides Builder</h2>
     <p>Enter your slide content in JSON format below:</p>
-    <textarea
-      id="slideContent"
-      placeholder='{
-    "slides": [
+    <textarea id="slideContent">
+  
+    {
+      "slides": [
         {
-            "title": "Slide 1 Title",
-            "type": "graph",
-            "notes": "Slide 1 notes"
+          "vo": "This is a test note for slide 1",
+          "notes": "This is a test note for slide 1"
         },
         {
-            "title": "Slide 2 Title",
-            "type": "chart",
-            "notes": "Slide 2 notes"
+          "vo": "This is a test note for slide 2",
+          "notes": "This is a test note for slide 2"
+        },
+        {
+          "vo": "This is a test note for slide 3",
+          "notes": "This is a test note for slide 3"
         }
-    ]
-}'
-    ></textarea>
+      ]
+    }
+  
+  </textarea
+    >
     <button id="create">Create Slides</button>
     <div id="error"></div>
 

@@ -1,30 +1,6 @@
 // Define the test data as a global variable
-const testData = {
-  slides: [
-    {
-      title: "Test Slide 1",
-      type: "graph",
-      vo: "This is a test note for slide 1",
-      notes: "This is a test note for slide 1",
-    },
-    {
-      title: "Test Slide 2",
-      type: "chart",
-      vo: "This is a test note for slide 2",
-      notes: "This is a test note for slide 2",
-    },
-    {
-      title: "Test Slide 3",
-      type: "image",
-      vo: "This is a test note for slide 3",
-      notes: "This is a test note for slide 3",
-    },
-  ],
-};
 
 interface Slide {
-  title: string;
-  type: string;
   vo: string;
   notes: string;
 }
@@ -33,18 +9,18 @@ interface SlidesInput {
   slides: Slide[];
 }
 
-const yPadding = 100;
-const dev = true;
+const FRAME_WIDTH = 1920;
+const FRAME_HEIGHT = 1080;
+const HORIZONTAL_PADDING = 100;
+const VERTICAL_PADDING = 400; // Increased to accommodate larger text and spacing
+const FRAMES_PER_ROW = 4;
+const TEXT_PADDING = 60; // New constant for spacing between frame and text
 
-// Comment out the UI show command for development
-if (dev) {
-  createSlides(testData as SlidesInput).catch((error) => {
-    console.error("Error creating slides:", error);
-    figma.closePlugin("An error occurred while creating slides.");
-  });
-} else {
-  figma.showUI(__html__, { width: 400, height: 500 });
-}
+// Always show the UI
+figma.showUI(__html__, { width: 400, height: 500 });
+
+// Send initial data to the UI
+// figma.ui.postMessage({ type: "init", initialData: testData });
 
 figma.ui.onmessage = (msg) => {
   if (msg.type === "create-slides") {
@@ -67,58 +43,53 @@ async function createSlides(content: SlidesInput) {
     await createSlide(slide, index);
   }
 
-  figma.closePlugin("Slides created successfully!");
+  // figma.closePlugin("Slides created successfully!");
 }
 
 async function createSlide(slide: Slide, index: number) {
+  const row = Math.floor(index / FRAMES_PER_ROW);
+  const col = index % FRAMES_PER_ROW;
+
   const frame = figma.createFrame();
-  frame.resize(1920, 1080);
-  frame.name = slide.title;
-  frame.x = 0;
-  frame.y = index * (1080 + yPadding);
+  frame.resize(FRAME_WIDTH, FRAME_HEIGHT);
+  frame.name = `Slide ${index + 1}`;
+  frame.x = col * (FRAME_WIDTH + HORIZONTAL_PADDING);
+  frame.y = row * (FRAME_HEIGHT + VERTICAL_PADDING);
 
   // Add background
   const bg = figma.createRectangle();
-  bg.resize(1920, 1080);
+  bg.resize(FRAME_WIDTH, FRAME_HEIGHT);
   bg.fills = [{ type: "SOLID", color: { r: 0.95, g: 0.95, b: 0.95 } }];
   frame.appendChild(bg);
 
-  // Add placeholder for main content based on type
-  const content = figma.createRectangle();
-  content.resize(1720, 700);
-  content.x = 100;
-  content.y = 150;
-  content.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
-  frame.appendChild(content);
-
-  // Add text to indicate content type
-  const textNode = createText(
-    `Placeholder for ${slide.type}`,
-    frame,
-    content.x + content.width / 2,
-    content.y + content.height / 2
+  // Add VO text outside and underneath the frame
+  const voText = createText(
+    `VO: ${slide.vo}`,
+    frame.x,
+    frame.y + FRAME_HEIGHT + TEXT_PADDING
   );
-  frame.appendChild(textNode);
+  voText.fontSize = 36; // Doubled from 18
+  voText.textAlignHorizontal = "LEFT";
+  voText.resize(FRAME_WIDTH, voText.height);
 
-  const voX = content.x - 500;
-  const voY = frame.y + frame.height / 2;
-  const voText = createText(slide.vo, frame, voX, voY);
-  const notesText = createText(slide.notes, frame, voX, voY);
+  // Add notes text below the VO text
+  const notesText = createText(
+    `Notes: ${slide.notes}`,
+    frame.x,
+    frame.y + FRAME_HEIGHT + voText.height + TEXT_PADDING * 2
+  );
+  notesText.fontSize = 36; // Doubled from 18
+  notesText.textAlignHorizontal = "LEFT";
+  notesText.resize(FRAME_WIDTH, notesText.height);
 }
 
-function createText(text: string, frame: FrameNode, x: number, y: number) {
+function createText(text: string, x: number, y: number) {
   const textNode = figma.createText();
   textNode.characters = text;
   textNode.fontName = { family: "Inter", style: "Regular" };
-  textNode.fontSize = 24;
+  textNode.fontSize = 48; // Doubled from 24
   textNode.x = x;
   textNode.y = y;
-  // Center the text horizontally and vertically
-  textNode.textAlignHorizontal = "CENTER";
-  textNode.textAlignVertical = "CENTER";
 
-  // Adjust the position to account for centering
-  textNode.x = x - textNode.width / 2;
-  textNode.y = y - textNode.height / 2;
   return textNode;
 }
