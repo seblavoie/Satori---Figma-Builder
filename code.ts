@@ -12,7 +12,7 @@ interface SlidesInput {
 const FRAME_WIDTH = 1920;
 const FRAME_HEIGHT = 1080;
 const HORIZONTAL_PADDING = 100;
-const VERTICAL_PADDING = 400; // Increased to accommodate larger text and spacing
+const VERTICAL_PADDING = 800; // Increased to accommodate larger text and spacing
 const FRAMES_PER_ROW = 4;
 const TEXT_PADDING = 60; // New constant for spacing between frame and text
 
