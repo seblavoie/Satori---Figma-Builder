@@ -34,34 +34,34 @@
   </head>
   <body>
     <h2>Satori - Slides Builder</h2>
-    <p>Enter your slide content in JSON format below:</p>
-    <textarea id="slideContent">
-{
-  "slides": [
-    {
-      "title": "Vo note for slide 1",
-      "subtitle": "This is a test note for slide 1"
-    },
-    {
-      "title": "Vo note for slide 2",
-      "subtitle": "This is a test note for slide 2"
-    },
-    {
-      "title": "Vo note for slide 3",
-      "subtitle": "This is a test note for slide 3"
-    }
-  ]
-}
+    <p>Enter your slide content in CSV format below (title,subtitle):</p>
+    <textarea id="csvContent">
+Vo note for slide 1,This is a test note for slide 1
+Vo note for slide 2,This is a test note for slide 2
+Vo note for slide 3,This is a test note for slide 3
     </textarea>
     <button id="create">Create Slides</button>
     <div id="error"></div>
 
     <script>
+      function parseCSV(csv) {
+        const rows = csv
+          .split("\n")
+          .map((row) => row.trim())
+          .filter((row) => row.length > 0);
+        return {
+          slides: rows.map((row) => {
+            const [title, subtitle] = row.split(",").map((cell) => cell.trim());
+            return { title, subtitle };
+          }),
+        };
+      }
+
       document.getElementById("create").onclick = () => {
-        const content = document.getElementById("slideContent").value;
+        const content = document.getElementById("csvContent").value;
         try {
-          const jsonContent = JSON.parse(content);
-          console.log("Parsed JSON:", jsonContent);
+          const jsonContent = parseCSV(content);
+          console.log("Parsed CSV:", jsonContent);
 
           if (
             !jsonContent.slides ||
@@ -69,7 +69,7 @@
             jsonContent.slides.length === 0
           ) {
             throw new Error(
-              "Invalid JSON structure. Expected a 'slides' array with at least one slide."
+              "Invalid CSV structure. Expected at least one row with title and subtitle."
             );
           }
 
@@ -79,9 +79,9 @@
           );
           document.getElementById("error").textContent = "";
         } catch (e) {
-          console.error("JSON parsing error:", e);
+          console.error("CSV parsing error:", e);
           document.getElementById("error").textContent =
-            "Invalid JSON. Error: " + e.message;
+            "Invalid CSV. Error: " + e.message;
         }
       };
     </script>
