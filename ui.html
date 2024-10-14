@@ -35,23 +35,43 @@
   <body>
     <h2>Satori - Slides Builder</h2>
     <p>Enter your slide content in CSV format below (title,subtitle):</p>
+    <p>
+      Use quotes to include commas in your data, e.g., "Title, with
+      comma",Subtitle
+    </p>
     <textarea id="csvContent">
-Vo note for slide 1,This is a test note for slide 1
-Vo note for slide 2,This is a test note for slide 2
-Vo note for slide 3,This is a test note for slide 3
+"Vo note for slide 1, with comma",This is a test note for slide 1
+Vo note for slide 2,"This is a test note, for slide 2"
+"Vo note for slide 3, with comma","This is a test note, for slide 3"
     </textarea>
     <button id="create">Create Slides</button>
     <div id="error"></div>
 
     <script>
       function parseCSV(csv) {
-        const rows = csv
-          .split("\n")
-          .map((row) => row.trim())
-          .filter((row) => row.length > 0);
+        const rows = csv.split(/\r?\n/).filter((row) => row.trim().length > 0);
+        const parseRow = (row) => {
+          const cells = [];
+          let inQuotes = false;
+          let currentCell = "";
+
+          for (let char of row) {
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === "," && !inQuotes) {
+              cells.push(currentCell.trim());
+              currentCell = "";
+            } else {
+              currentCell += char;
+            }
+          }
+          cells.push(currentCell.trim());
+          return cells;
+        };
+
         return {
           slides: rows.map((row) => {
-            const [title, subtitle] = row.split(",").map((cell) => cell.trim());
+            const [title, subtitle] = parseRow(row);
             return { title, subtitle };
           }),
         };
