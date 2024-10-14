@@ -1,8 +1,8 @@
 // Define the test data as a global variable
 
 interface Slide {
-  vo: string;
-  notes: string;
+  title: string;
+  subtitle: string;
 }
 
 interface SlidesInput {
@@ -19,15 +19,19 @@ const TEXT_PADDING = 60; // New constant for spacing between frame and text
 // Always show the UI
 figma.showUI(__html__, { width: 400, height: 500 });
 
-// Send initial data to the UI
-// figma.ui.postMessage({ type: "init", initialData: testData });
-
 figma.ui.onmessage = (msg) => {
   if (msg.type === "create-slides") {
-    createSlides(msg.content).catch((error) => {
-      console.error("Error creating slides:", error);
-      figma.closePlugin("An error occurred while creating slides.");
-    });
+    try {
+      const content = msg.content as SlidesInput;
+      console.log("Received content:", content); // Add this line for debugging
+      createSlides(content).catch((error) => {
+        console.error("Error creating slides:", error);
+        figma.closePlugin("An error occurred while creating slides.");
+      });
+    } catch (error) {
+      console.error("Error processing content:", error);
+      figma.closePlugin("Invalid content format. Please check your input.");
+    }
   }
 };
 
@@ -64,23 +68,25 @@ async function createSlide(slide: Slide, index: number) {
 
   // Add VO text outside and underneath the frame
   const voText = createText(
-    `VO: ${slide.vo}`,
+    `${slide.title}`,
     frame.x,
     frame.y + FRAME_HEIGHT + TEXT_PADDING
   );
-  voText.fontSize = 36; // Doubled from 18
+  voText.fontSize = 36;
   voText.textAlignHorizontal = "LEFT";
   voText.resize(FRAME_WIDTH, voText.height);
 
-  // Add notes text below the VO text
-  const notesText = createText(
-    `Notes: ${slide.notes}`,
-    frame.x,
-    frame.y + FRAME_HEIGHT + voText.height + TEXT_PADDING * 2
-  );
-  notesText.fontSize = 36; // Doubled from 18
-  notesText.textAlignHorizontal = "LEFT";
-  notesText.resize(FRAME_WIDTH, notesText.height);
+  // Add notes text below the VO text only if notes are specified
+  if (slide.subtitle && slide.subtitle.trim() !== "") {
+    const notesText = createText(
+      `${slide.subtitle}`,
+      frame.x,
+      frame.y + FRAME_HEIGHT + voText.height + TEXT_PADDING * 2
+    );
+    notesText.fontSize = 36;
+    notesText.textAlignHorizontal = "LEFT";
+    notesText.resize(FRAME_WIDTH, notesText.height);
+  }
 }
 
 function createText(text: string, x: number, y: number) {

@@ -36,26 +36,23 @@
     <h2>Satori - Slides Builder</h2>
     <p>Enter your slide content in JSON format below:</p>
     <textarea id="slideContent">
-  
+{
+  "slides": [
     {
-      "slides": [
-        {
-          "vo": "This is a test note for slide 1",
-          "notes": "This is a test note for slide 1"
-        },
-        {
-          "vo": "This is a test note for slide 2",
-          "notes": "This is a test note for slide 2"
-        },
-        {
-          "vo": "This is a test note for slide 3",
-          "notes": "This is a test note for slide 3"
-        }
-      ]
+      "title": "Vo note for slide 1",
+      "subtitle": "This is a test note for slide 1"
+    },
+    {
+      "title": "Vo note for slide 2",
+      "subtitle": "This is a test note for slide 2"
+    },
+    {
+      "title": "Vo note for slide 3",
+      "subtitle": "This is a test note for slide 3"
     }
-  
-  </textarea
-    >
+  ]
+}
+    </textarea>
     <button id="create">Create Slides</button>
     <div id="error"></div>
 
@@ -64,14 +61,27 @@
         const content = document.getElementById("slideContent").value;
         try {
           const jsonContent = JSON.parse(content);
+          console.log("Parsed JSON:", jsonContent);
+
+          if (
+            !jsonContent.slides ||
+            !Array.isArray(jsonContent.slides) ||
+            jsonContent.slides.length === 0
+          ) {
+            throw new Error(
+              "Invalid JSON structure. Expected a 'slides' array with at least one slide."
+            );
+          }
+
           parent.postMessage(
             { pluginMessage: { type: "create-slides", content: jsonContent } },
             "*"
           );
           document.getElementById("error").textContent = "";
         } catch (e) {
+          console.error("JSON parsing error:", e);
           document.getElementById("error").textContent =
-            "Invalid JSON. Please check your input.";
+            "Invalid JSON. Error: " + e.message;
         }
       };
     </script>
