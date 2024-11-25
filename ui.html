@@ -49,7 +49,6 @@ Vo note for slide 2,"This is a test note, for slide 2"
 
     <script>
       function parseCSV(csv) {
-        const rows = csv.split(/\r?\n/).filter((row) => row.trim().length > 0);
         const parseRow = (row) => {
           const cells = [];
           let inQuotes = false;
@@ -59,18 +58,57 @@ Vo note for slide 2,"This is a test note, for slide 2"
             if (char === '"') {
               inQuotes = !inQuotes;
             } else if (char === "," && !inQuotes) {
-              cells.push(currentCell.trim());
+              currentCell = currentCell.trim();
+              if (currentCell.startsWith('"') && currentCell.endsWith('"')) {
+                currentCell = currentCell.slice(1, -1).replace(/""/g, '"');
+              }
+              cells.push(currentCell);
               currentCell = "";
             } else {
               currentCell += char;
             }
           }
-          cells.push(currentCell.trim());
+          currentCell = currentCell.trim();
+          if (currentCell.startsWith('"') && currentCell.endsWith('"')) {
+            currentCell = currentCell.slice(1, -1).replace(/""/g, '"');
+          }
+          cells.push(currentCell);
           return cells;
         };
 
+        const splitIntoRows = (csv) => {
+          const result = [];
+          let currentRow = "";
+          let inQuotes = false;
+
+          for (let i = 0; i < csv.length; i++) {
+            const char = csv[i];
+
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            }
+
+            if (char === "\n" && !inQuotes) {
+              if (currentRow.trim()) {
+                result.push(currentRow.trim());
+              }
+              currentRow = "";
+            } else {
+              currentRow += char;
+            }
+          }
+
+          if (currentRow.trim()) {
+            result.push(currentRow.trim());
+          }
+
+          return result;
+        };
+
+        const parsedRows = splitIntoRows(csv);
+
         return {
-          slides: rows.map((row) => {
+          slides: parsedRows.map((row) => {
             const [title, subtitle] = parseRow(row);
             return { title, subtitle };
           }),
